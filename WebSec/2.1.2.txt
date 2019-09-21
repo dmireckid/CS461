@@ -1,0 +1,27 @@
+/*
+Syntax used for 2.1.2.1:
+
+CREATE DATABASE project2;
+CREATE USER 'mirecki2'@'localhost' IDENTIFIED BY 'a19e87d10737bc2e10f62a9f8857fdb6da8f37ebb8f28cc5c1a2bf2aedb927bf';
+GRANT INSERT ON project2.* TO 'mirecki2'@'localhost';
+GRANT UPDATE ON project2.* TO 'mirecki2'@'localhost';
+GRANT SELECT ON project2.* TO 'mirecki2'@'localhost';
+*/
+
+
+USE project2;
+CREATE TABLE users (
+	id INT(11) UNSIGNED AUTO_INCREMENT NOT NULL,
+	username VARCHAR(32) NOT NULL,
+	password VARCHAR(32) NOT NULL,
+	passwordhash BLOB(16) NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE INDEX (username)
+);
+CREATE TABLE history (
+	id INT(11) UNSIGNED AUTO_INCREMENT NOT NULL,
+	user_id INT(11) UNSIGNED NOT NULL,
+	query VARCHAR(2048) NOT NULL,
+	PRIMARY KEY (id),
+	INDEX (user_id)
+);

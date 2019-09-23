@@ -25,7 +25,8 @@ class XSSEncodeAngles(object):
         response.set_header("X-XSS-Protection", "0");
     @staticmethod
     def filter(user_input):
-        #TODO: complete this filter definition
+        user_input = user_input.replace('<', '&lt;');
+	user_input = user_input.replace('>', '&gt;');
         return user_input	
 
 ############################################################

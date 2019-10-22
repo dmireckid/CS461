@@ -64,7 +64,6 @@ for i in range(blocks_to_crack):
 
 # Properly strip the plaintext of any additional padding
 plaintext = strip_padding(plaintext)[1]
-plaintext = plaintext.strip("\n")
 print(plaintext)
 
 # Save the cleaned-up plaintext in the sol_3.2.3.txt file

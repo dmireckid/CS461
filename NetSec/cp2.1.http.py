@@ -169,7 +169,7 @@ if __name__ == "__main__":
     clientIP = args.clientIP
     serverIP = args.serverIP
     script = "<script>"+args.script+"</script></body>"
-
+    flag = 0
     attackerMAC = get_if_hwaddr(args.interface)
     debug(f"Attacker MAC is {attackerMAC}")
     clientMAC = mac(clientIP)

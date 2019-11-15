@@ -1,0 +1,10 @@
+We performed an fls command on the raw disk to locate the files that contain the string "chat.org". After finding the files, we performed an icat command on each of them via their inode number to look at the content, and respectively wrote down each file containing a conversation.
+The inodes we found that contained "chat.org" were:
+18187
+18185
+4935- with user mspeackock
+1770
+1852
+18147
+26647- with user peter.plum
+1669- with user peter.plum

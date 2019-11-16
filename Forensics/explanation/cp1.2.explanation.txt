@@ -1,2 +1,2 @@
-We looked at the "etc/timezone" file to see what the timezone was configured as, and made our decision that way
-We also inspected the time modified property for a file and saw that the configured time was CST
+We looked at the "etc/timezone" file to see what the timezone was configured as, and made our decision that way.
+We also inspected the time modified property for a file and saw that the configured time was CST.

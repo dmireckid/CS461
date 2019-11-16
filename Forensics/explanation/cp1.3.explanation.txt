@@ -2,9 +2,9 @@ We performed an fls command on the raw disk to locate the files that contain the
 The inodes we found that contained "chat.org" were:
 18187
 18185
-4935- with user mspeackock
+4935- with user mspeackock (11-02 19:41:04)
 1770
-1852
+3852
 18147
-26647- with user peter.plum
-1669- with user peter.plum
+28647- with user peter.plum (11-02 19:47:25)
+1669- with user peter.plum (11-03 09:51:38)

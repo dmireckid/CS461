@@ -1,0 +1,13 @@
+18187
+18185
+4935 *mspeacock@jwchat.org
+1770
+3852
+18147
+28647 *peter.plum@jwchat.org
+1669 *peter.plum ^2
+
+
+icat -f ext4 -o 2048 victim.raw <inode#>
+fls -p -l -o 2048 -r victim.raw | grep -i "chat.org"
+sudo cat <filename> | egrep -a "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" 

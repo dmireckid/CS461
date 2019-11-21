@@ -1,0 +1,6 @@
+We found the distribution and version for the default OS via dead analysis using the cat command on "etc/DISTRO_SPECS".
+
+We decided what the script file was by looking at the command line when the default OS booted up; we paid attention to the line that specified the file that was being copied to the RAM, which was "pup-431.sfs"
+
+We found the distribution and version for the primary OS by booting the primary OS via the BIOS, logging into the main user, and using terminal command  to display the distribution and version number.
+We also found the primary OS distribution and version via dead analysis using the cat command on "etc/os-release".

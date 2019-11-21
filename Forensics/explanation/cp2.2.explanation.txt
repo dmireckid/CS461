@@ -1,0 +1,2 @@
+We found the login name by mounting the file system of the primary OS and using the cat commmand on "etc/shadow" and finding the line containing the username/hash combination.
+We also found the same login name by logging into the primary OS live and opening the terminal to see the actual login name.

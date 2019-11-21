@@ -1,0 +1,11 @@
+Like on the victim's computer, we also performed an fls command on the raw disk to locate the files that contain the string "chat.org". After finding the files, we performed an icat command on each of them via their inode number to look at the content, and respectively wrote down each file containing a conversation.
+The inodes we found that contained "chat.org" were:
+171063
+179007
+179008
+132550- with user peter.plum (11-02 19:50:36)
+132406- with user peter.plum (11-03 09:57:46)
+132695
+177338(realloc)
+179008(realloc)
+Just to make sure, we also performed a live analysis on the suspect's computer and looked in the chat history for the Pidgin app

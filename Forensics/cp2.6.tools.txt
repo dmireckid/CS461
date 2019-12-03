@@ -1,3 +1,2 @@
-###Solution Example: ###
 nmap
 hydra

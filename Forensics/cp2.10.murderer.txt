@@ -1,3 +1,1 @@
-###Solution Example: ###
-#k
-
+a

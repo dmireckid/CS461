@@ -3,7 +3,7 @@ The prime suspect is responsible for planting the "whistleblower-DRAFT.txt" file
 The second suspect is repsonsible for choosing a (seemingly) more fatal murder weapon.
 The latest time the prime suspect (10.46.1.105) successfully SSH'd onto the victim's computer was Nov 4, 19:38:54.
 The latest time the second suspect (10.46.1.106) successfully SSH'd onto the victim's computer was Nov 4, 21:14:30.
-There was a bus ticket email message in the Trash of the second suspect's Thunderbird app.
+There was a bus ticket email message in the Trash of the second suspect's Thunderbird app. We also checked the second suspect's ticket PDF file, and the bus ticket was scheduled to leave on Nov 04 at 22:00:00, the destination being the O'Hare Bus Shuttle Center.
 There were no emails or chat logs between the primary suspect and second suspect, so we believe that they weren't directly affiliated with each other during this incident.
 
 
@@ -13,7 +13,7 @@ Our hypothesized chain of events:
     On Nov 4, at 19:38:54, Mustard SSH'd back onto Boddy's computer and planted the "whistleblower-DRAFT.txt" file to incriminate Peacock for the crime.
     During this period of time, Mustard attacked Boddy with a (perhaps enhanced) NERF gun, killing him, and then escaped with a nefarious accomplice at around 21:40:00. Peacock didn't know Boddy was dead at this point.
     On Nov 4, at 21:14:30, Peacock SSH'd onto Boddy's computer, likely with the intention of deleting Boddy's incriminating documents of her, but then noticed the "whistleblower-DRAFT.txt" file.
-    Believing that Boddy already sent the file, Peacock panicked and ordered a bus ticket to run away and go into hiding.
+    Believing that Boddy already sent the file, Peacock panicked and ordered the earliest bus ticket scheduled to leave for the O'Hare Bus Shuttle Center, intent on running away and go into hiding.
 
 Our verdict:
     Colonel Mustard and Ms Peacock both wanted to shut up Boddy permanently, but Mustard managed to beat Peacock to the punch. To cover his tracks, he then planted a text file in Boddy's computer to pin the blame on Peacock instead.

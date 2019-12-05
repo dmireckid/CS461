@@ -1,0 +1,10 @@
+For the tools that the prime suspect used, via dead analysis, we checked the "/home/clmustard/.bash_history" file containing the command history of the terminal and looked at all the relevant apps that were used.
+Via live analysis, we entered the "history" command in the prime suspect's terminal.
+
+For the IP address assigned to the suspect during the attack, we grepped for "address" in the "var/log/syslog" file and located the line specifying the IP address assignment that's closest to the time of the first attack.
+
+For the public and private keys in the SSH connection, we first looked at the suspect's "home/clmustard/.ssh/known_hosts" file to figure out what public key it used, then went into the victim's filesystem to find the public and private key files that corresponded to the suspect's public key.
+
+For the user that the attacker logged in as via SSH, we grepped for the IP of the attacker "10.46.1.105" in the "var/log/auth.log" file and looked for the most recent successful SSH login, then referred to the username specified by the login.
+
+For the password that the attacker used to log in, we used live analysis to retrace the attacker's steps via "history" in terminal, then through context, deducted that after using Hydra, the attacker saved the password in a text file and then stored it in an encrypted ZIP file (it was the same password-protected ZIP file we cracked in 5.2.5)

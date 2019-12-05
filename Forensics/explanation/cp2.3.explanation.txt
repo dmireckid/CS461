@@ -8,4 +8,4 @@ The inodes we found that contained "chat.org" were:
 132695
 177338(realloc)
 179008(realloc)
-Just to make sure, we also performed a live analysis on the suspect's computer and looked in the chat history for the Pidgin app
+Just to make sure, we also performed a live analysis on the suspect's computer and looked in the chat history for the Pidgin app.

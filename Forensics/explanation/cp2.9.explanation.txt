@@ -1,0 +1,7 @@
+For the deleted file, after looking at the second suspect's terminal history, we noticed that she deleted a file named "evilplan.doc".
+
+For the file deletion time, we used "grep" to find the inode of the "evilplan.doc" file, and then used "istat" to see when it was deleted.
+
+*Since the original file header was overwritten, we weren't required to calculate the deleted file's SHA256 checksum.
+
+After checking the web search history of the second suspect, we found that there were searches for both cyanide and toxic waste candies. However, there was more commitment to the toxic waste candies, while she merely skimmed through searching for cyanide, not to mention the suspect also deleted "/toxic" and "/waste" in her terminal history.

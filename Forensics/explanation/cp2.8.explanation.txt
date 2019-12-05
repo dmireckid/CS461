@@ -1,0 +1,1 @@
+Upon looking at the prime suspect's terminal command history, we noticed that the suspect actually planted the "whistleblower-DRAFT.txt" file via his own computer using the "scp" command and then removed the file.

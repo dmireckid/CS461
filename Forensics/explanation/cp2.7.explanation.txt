@@ -1,0 +1,10 @@
+For the email address, we used live analysis to check the suspect's email messages in the Thunderbird app, and found the accomplice's email address that way.
+Via dead analysis, we looked in the "home/clmustard/.thunderbird/fmx9ij20.default/ImapMail/imap.gmail.com/[Gmail].sbd/Sent Mail" file.
+
+For the escape location, we followed the goo.gl link found in a Thunderbird conversation between the prime suspect and Nefarious Accomplice. This led us to a UofI box site with an image file. We analyzed the file data of the photo via "Properties", which revealed the coordinates from where it was taken.
+
+For the time the prime suspect originally planned to escape, we used live analysis to check through all the suspect's email messages in Thunderbird to figure out the original escape time.
+Via dead analysis, we looked in the "home/clmustard/.thunderbird/fmx9ij20.default/ImapMail/imap.gmail.com/INBOX" file.
+
+For the time the prime suspect actually decided to escape, we used live analysis to check through all the suspect's email messages in Thunderbird to figure out the revised escape time.
+Via dead analysis, we looked in the "home/clmustard/.thunderbird/fmx9ij20.default/ImapMail/imap.gmail.com/INBOX" file.

@@ -1,2 +1,2 @@
-There were two methods in which we investigated the suspect's search history. First was via live analysis, where we directly investigated the search history of the user's Firefox app. In there, we found search queues regarding murder and Nerf Gun ordering.
+There were two methods in which we investigated the suspect's search history. First was via live analysis, where we directly investigated the search history of the user's Firefox app. In there, we found search queries regarding murder and Nerf Gun ordering.
 The second method was via dead analysis, where we did a full search on suspect-l's disk using the strings command and grep command. Specifically, we used the strings command along with grep to search for any and all lines that contain '{"url":"'.

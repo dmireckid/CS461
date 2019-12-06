@@ -1,1 +1,2 @@
+ssh_host_ecdsa_key.pub
 a885ea67bd73b9a00d85ceb6de9dfba12150cce948b6e1c42f352b8aeaeb2f28
